@@ -4,7 +4,7 @@ A wrapper for connecting to and driving the Scorpion instrument. For more inform
 
 To use the source code for this library you will need at least Visual Studio 2015 or higher as well as the latest .Net Core toolsets. You can find a link to the nuget feed for the compiled libraries below.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/y2wfkk2u29ry7igp/branch/master?svg=true)](https://ci.appveyor.com/project/CicerosPatience/scorpion-driver/branch/master) [![NuGet](https://img.shields.io/nuget/v/Kbiosystems.Scorpion.Driver.svg)](https://www.nuget.org/packages/Kbiosystems.Scorpion.Driver/)
+[![Build status](https://ci.appveyor.com/api/projects/status/5lrnpcfdmiriwgul?svg=true)](https://ci.appveyor.com/project/CicerosPatience/scorpion-driver) [![NuGet](https://img.shields.io/nuget/v/Kbiosystems.Scorpion.Driver.svg)](https://www.nuget.org/packages/Kbiosystems.Scorpion.Driver/)
 
 # How Does it Work?
 
