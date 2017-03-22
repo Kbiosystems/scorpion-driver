@@ -3,6 +3,14 @@
   <PropertyGroup>
     <TargetFrameworks>net40;net45;net46</TargetFrameworks>
     <RootNamespace>Kbiosystems</RootNamespace>
+    <Version>0.9.0</Version>
+    <Authors>Kbiosystems</Authors>
+    <Company>Kbiosystems</Company>
+    <PackageReleaseNotes>https://github.com/Kbiosystems/scorpion-driver/releases</PackageReleaseNotes>
+    <Copyright>Copyright 2017 Kbiosystems</Copyright>
+    <PackageLicenseUrl>https://github.com/Kbiosystems/scorpion-driver/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/Kbiosystems/scorpion-driver</PackageProjectUrl>
+    <Description>A wrapper for connecting to and driving Kbiosystem's Scorpion stacker instrument.</Description>
   </PropertyGroup>
 
 </Project>
