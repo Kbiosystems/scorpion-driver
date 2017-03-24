@@ -18,7 +18,6 @@ namespace Kbiosystems
         private const string _errorResult = "err";
 
         private SerialPort _port;
-        private Action<string> _logAction;
 
         public bool Connected { get; private set; }
 
@@ -28,16 +27,7 @@ namespace Kbiosystems
         public ScorpionDriver()
         { }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ScorpionDriver"/> class.
-        /// </summary>
-        /// <param name="logAction">The log action to execute.</param>
-        public ScorpionDriver(Action<string> logAction)
-        {
-            _logAction = logAction;
-        }
-
-        public void Connect(string portName)
+        public bool Connect(string portName)
         {
             Disconnect();
 
@@ -46,9 +36,18 @@ namespace Kbiosystems
             _port.NewLine = "\r";
             _port.Open();
 
-            var result = GetVersion();
+            //get version info as connection test
+            try
+            {
+                string version = QueryVersion();
+                Connected = true;
+            }
+            catch (Exception ex)
+            {
+                Disconnect();
+            }
 
-            Connected = true;
+            return Connected;
         }
 
         public void Disconnect()
@@ -62,27 +61,19 @@ namespace Kbiosystems
             }
         }
 
-
-        public Version GetVersion()
+        public string QueryVersion()
         {
-            throw new NotImplementedException();
+            return WriteQuery("V");
         }
 
         public ScorpionStatus QueryStatus()
         {
-            string result = WriteCommand("?");
-
-            if (result == _errorResult) { return ScorpionStatus.Error; }
+            string result = WriteQuery("?", string.Empty);
 
             int status = -1;
-            if (!int.TryParse(result, out status))
+            if (!int.TryParse(result, out status) || !Array.Exists((int[])Enum.GetValues(typeof(ScorpionStatus)), i => i == status))
             {
-                throw new Exception("Unexpected result returned when querying status: " + result);
-            }
-
-            if (!Array.Exists((int[])Enum.GetValues(typeof(ScorpionStatus)), i => i == status))
-            {
-                throw new Exception("Unexpected result returned when querying status: " + result);
+                throw new ScorpionUnexpectedResponseException("?", result);
             }
 
             return (ScorpionStatus)status;
@@ -90,45 +81,35 @@ namespace Kbiosystems
 
         public ScorpionError QueryError()
         {
-            var result = WriteCommand("E");
-            if (!result.StartsWith("E"))
-            {
-                throw new Exception("Unexpected result returned when querying error: " + result);
-            }
+            var result = WriteQuery("E");
 
-            result = result.Replace("E", "");
             int error = -1;
-            if (!int.TryParse(result, out error))
+            if (!int.TryParse(result, out error) || !Array.Exists((int[])Enum.GetValues(typeof(ScorpionError)), i => i == error))
             {
-                throw new Exception("Unexpected result returned when querying error: " + result);
-            }
-
-            if (!Array.Exists((int[])Enum.GetValues(typeof(ScorpionError)), i => i == error))
-            {
-                throw new Exception("Unknown error result returned: " + result);
+                throw new ScorpionUnexpectedResponseException("E", result);
             }
 
             return (ScorpionError)error;
         }
 
-        public ScorpionStatus Initialize()
+        public void Initialize()
         {
-            return WriteStandardCommand("I");
+            WriteCommand("I");
         }
 
-        public ScorpionStatus GetPlate()
+        public void GetPlate()
         {
-            return WriteStandardCommand("G");
+            WriteCommand("G");
         }
 
-        public ScorpionStatus ReplacePlate()
+        public void ReplacePlate()
         {
-            return WriteStandardCommand("R");
+            WriteCommand("R");
         }
 
-        public ScorpionStatus FinishRun()
+        public void FinishRun()
         {
-            return WriteStandardCommand("PA");
+            WriteCommand("PA");
         }
 
         public void Dispose()
@@ -136,42 +117,56 @@ namespace Kbiosystems
             Disconnect();
         }
 
-        public string WriteCommand(string command)
+        public string Write(string request)
         {
             if (!Connected) { throw new InvalidOperationException("Scorpion has not been connected."); }
 
-            _port.WriteLine(command);
+            _port.WriteLine(request);
             Thread.Sleep(500);
 
             string result = _port.ReadLine();
-            while (result == command || string.IsNullOrEmpty(result))
+            while (result == request || string.IsNullOrEmpty(result))
             {
                 result = _port.ReadLine();
             }
             return result;
         }
 
-        private ScorpionStatus WriteStandardCommand(string command)
+        private string WriteQuery(string query)
         {
-            Log("Writing command " + command);
-            var result = WriteCommand(command);
+            return WriteQuery(query, query);
+        }
+
+        private string WriteQuery(string query, string expectedResultStart)
+        {
+            string result = Write(query);
+
+            if (result == _errorResult)
+            {
+                throw new ScorpionRequestException();
+            }
+
+            if (!string.IsNullOrEmpty(expectedResultStart) && !result.StartsWith(expectedResultStart))
+            {
+                throw new ScorpionUnexpectedResponseException(query, result);
+            }
+
+            return result.Replace(expectedResultStart, "");
+        }
+
+        private void WriteCommand(string command)
+        {
+            var result = Write(command);
 
             if (result != _successfulResult)
             {
                 if (result == _errorResult)
                 {
-                    return ScorpionStatus.Error;
+                    throw new ScorpionRequestException();
                 }
 
-                throw new Exception("Unexpected result returned when sending the " + command + " command: " + result);
+                throw new ScorpionUnexpectedResponseException(command, result);
             }
-
-            return ScorpionStatus.Okay;
-        }
-
-        private void Log(string message)
-        {
-            _logAction?.Invoke(message);
         }
     }
 }
