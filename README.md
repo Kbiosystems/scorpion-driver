@@ -1,6 +1,6 @@
 # Scorpion Driver
 
-A wrapper for connecting to and driving the Scorpion instrument. For more information about the Scorpion instrumnet please go to Kbiosystems website at http://kbiosystems.com/
+A wrapper for connecting to and driving the Scorpion instrument. For more information about the Scorpion instrument please go to Kbiosystems website at http://kbiosystems.com/
 
 To use the source code for this library you will need at least Visual Studio 2015 or higher as well as the latest .Net Core toolsets. You can find a link to the nuget feed for the compiled libraries below.
 
