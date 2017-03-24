@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -92,6 +93,42 @@ namespace Kbiosystems
             return (ScorpionError)error;
         }
 
+        public int QueryTransferPosition()
+        {
+            var result = WriteQuery("P1", "P1=");
+
+            int position = -1;
+            if (!int.TryParse(result, out position) || position < 0)
+            {
+                throw new ScorpionUnexpectedResponseException("P1", result);
+            }
+            return position;
+        }
+
+        public int QueryArmSafePosition()
+        {
+            var result = WriteQuery("P4", "P4=");
+
+            int position = -1;
+            if (!int.TryParse(result, out position) || position < 0)
+            {
+                throw new ScorpionUnexpectedResponseException("P4", result);
+            }
+            return position;
+        }
+
+        public int QueryArmSpeed()
+        {
+            var result = WriteQuery("P5", "P5=");
+
+            int speed = -1;
+            if (!int.TryParse(result, out speed) || speed < 0)
+            {
+                throw new ScorpionUnexpectedResponseException("P5", result);
+            }
+            return speed;
+        }
+
         public void Initialize()
         {
             WriteCommand("I");
@@ -110,6 +147,21 @@ namespace Kbiosystems
         public void FinishRun()
         {
             WriteCommand("PA");
+        }
+
+        public void SetTransferPosition(int position)
+        {
+            WriteCommand(string.Format(CultureInfo.InvariantCulture, "P1={0}", position));
+        }
+
+        public void SetArmSafePosition(int position)
+        {
+            WriteCommand(string.Format(CultureInfo.InvariantCulture, "P4={0}", position));
+        }
+
+        public void SetArmSpeed(int speed)
+        {
+            WriteCommand(string.Format(CultureInfo.InvariantCulture, "P4={0}", speed));
         }
 
         public void Dispose()
