@@ -161,7 +161,7 @@ namespace Kbiosystems
 
         public void SetArmSpeed(int speed)
         {
-            WriteCommand(string.Format(CultureInfo.InvariantCulture, "P4={0}", speed));
+            WriteCommand(string.Format(CultureInfo.InvariantCulture, "P5={0}", speed));
         }
 
         public void Dispose()
