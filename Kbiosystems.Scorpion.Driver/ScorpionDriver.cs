@@ -13,6 +13,9 @@ namespace Kbiosystems
     public enum ScorpionStatus { Okay = 0, Error = 2, Busy = 4, RunFinished = 16 }
     public enum ScorpionError { None = 0, ArmUp = 3, ArmDown = 4, PlateTransferBack = 6, ArmHome = 7, LiftHome = 8, ConveyerJam = 9, PauseButton = 10 }
 
+    public enum ScorpionMode { Unlidded = 0, Lidded = 1, LiddedWithDelid = 2 }
+    public enum ScorpionSpeed { Fast = 0, Medium = 1, Slow = 2 }
+
     public class ScorpionDriver : IDisposable
     {
         private const string _successfulResult = "ok";
@@ -117,16 +120,40 @@ namespace Kbiosystems
             return position;
         }
 
-        public int QueryArmSpeed()
+        public ScorpionSpeed QueryArmSpeed()
         {
-            var result = WriteQuery("P5", "P5=");
+            var result = WriteQuery("S?", "S?=");
 
             int speed = -1;
             if (!int.TryParse(result, out speed) || speed < 0)
             {
+                throw new ScorpionUnexpectedResponseException("S?", result);
+            }
+            return (ScorpionSpeed)speed;
+        }
+
+        public int QueryDropPosition()
+        {
+            var result = WriteQuery("P3", "P3=");
+
+            int position = -1;
+            if (!int.TryParse(result, out position) || position < 0)
+            {
+                throw new ScorpionUnexpectedResponseException("P3", result);
+            }
+            return position;
+        }
+
+        public int QueryPlateHeight()
+        {
+            var result = WriteQuery("P5", "P5=");
+
+            int position = -1;
+            if (!int.TryParse(result, out position) || position < 0)
+            {
                 throw new ScorpionUnexpectedResponseException("P5", result);
             }
-            return speed;
+            return position;
         }
 
         public void Initialize()
@@ -149,19 +176,63 @@ namespace Kbiosystems
             WriteCommand("PA");
         }
 
+        public void PrimeStack()
+        {
+            WriteCommand("U");
+        }
+
+        public void Abort()
+        {
+            WriteCommand("A!");
+        }
+
         public void SetTransferPosition(int position)
         {
+            if (position < 0 || position > 255) { throw new ArgumentException("Position must be between 0 and 255"); }
             WriteCommand(string.Format(CultureInfo.InvariantCulture, "P1={0}", position));
         }
 
         public void SetArmSafePosition(int position)
         {
+            if (position < 0 || position > 255) { throw new ArgumentException("Position must be between 0 and 255"); }
             WriteCommand(string.Format(CultureInfo.InvariantCulture, "P4={0}", position));
         }
 
-        public void SetArmSpeed(int speed)
+        public void SetArmSpeed(ScorpionSpeed speed)
         {
-            WriteCommand(string.Format(CultureInfo.InvariantCulture, "P5={0}", speed));
+            WriteCommand(string.Format(CultureInfo.InvariantCulture, "AS={0}", (int)speed));
+        }
+
+        public void SetDropPosition(int position)
+        {
+            if (position < 0 || position > 255) { throw new ArgumentException("Position must be between 0 and 255"); }
+            WriteCommand(string.Format(CultureInfo.InvariantCulture, "P3={0}", position));
+        }
+
+        public void SetPlateHeight(int height)
+        {
+            if (height < 1 || height > 255) { throw new ArgumentException("Height must be between 1 and 255"); }
+            WriteCommand(string.Format(CultureInfo.InvariantCulture, "P5={0}", height));
+        }
+
+        public void SetMode(ScorpionMode mode)
+        {
+            WriteCommand(string.Format(CultureInfo.InvariantCulture, "MD={0}", (int)mode));
+        }
+
+        public void TestTransfer()
+        {
+            WriteCommand("T");
+        }
+
+        public void JogToTarget()
+        {
+            WriteCommand("J1");
+        }
+
+        public void JogToHome()
+        {
+            WriteCommand("J2");
         }
 
         public void Dispose()
