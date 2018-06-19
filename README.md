@@ -12,5 +12,3 @@ The Scorpion driver library wraps the serial API for driving the Scorpion instru
 
 This library currently supports the following platforms: .Net 4.0, .Net 4.5, and .Net 4.6.
 
-## Using It
-
