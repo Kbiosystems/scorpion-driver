@@ -9,7 +9,7 @@
   environment:
     LIB_VERSION: '0.9.0'
   before_build:
-  - ps: .\install.ps1
+  - ps: .\build.ps1
   build_script:
   - ps: .\build.ps1
   build:
